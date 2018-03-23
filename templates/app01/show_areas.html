@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% load staticfiles %}
+
+<head>
+    <meta charset="UTF-8">
+    <title>区域显示案例</title>
+
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script>
+
+        $(function () {
+
+            var prov = $('#prov');
+            var city = $('#city');
+            var district = $('#district');
+
+            // todo: 显示省份
+            $.get('/get_provinces', function (json) {
+                // data: 服务器返回的所有的省份(js对象)
+                var provinces = json.area;
+                // alert(provinces.length)
+
+                // 方式一:js实现
+{#                for (var i = 0; i < provinces.length; i++) {#}
+{#                    var p = provinces[i];    // 一个区域#}
+{#                    var id = p[0];           // 区域的id#}
+{#                    var title = p[1];        // 区域名称#}
+{#                    console.log(id + "  "  + title)#}
+{#                    prov.append('<option value="'+ id +'">'+ title +'</option>')#}
+{#                }#}
+
+                // 方式二:jquery实现
+                $.each(provinces, function (index, province) {
+                    // index: 当前是第几次循环
+                    var id = province[0];           // 区域的id
+                    var title = province[1];        // 区域名称
+                    // console.log(index + " "  + id + ' ' + title)
+                    prov.append('<option value="'+ id +'">'+ title +'</option>');
+                })
+            })
+
+            // todo: 显示城市
+            // 监听省份的改变
+            prov.change(function () {
+                // 获取用户选中的省份的id
+                var id = $(this).val();
+                // alert(id)
+                // 清空上一次显示的城市数据
+                city.empty().append('<option>--请选择城市--</option>');
+                // 清空上一次显示的区县数据
+                district.empty().append('<option>--请选择区县--</option>');
+
+                // 根据省份id获取城市
+                $.get('/get_children/'+id, function (data) {
+                    // data: 服务器返回的数据
+                    var children = data.children;
+
+                    $.each(children, function (index, area) {
+                        // index: 当前是第几次循环
+                        var id = area[0];           // 区域的id
+                        var title = area[1];        // 区域名称
+                        city.append('<option value="'+ id +'">'+ title +'</option>');
+                    })
+                })
+            })
+
+            // todo: 显示区县
+            city.change(function () {
+                // 获取用户选中的城市的id
+                var id = $(this).val();
+                // 清空上一次显示的区县数据
+                district.empty().append('<option>--请选择区县--</option>');
+                // 根据城市id获取区县
+                $.get('/get_children/'+id, function (data) {
+                    // data: 服务器返回的数据
+                    var children = data.children;
+                    $.each(children, function (index, area) {
+                        var id = area[0];           // 区域的id
+                        var title = area[1];        // 区域名称
+                        district.append('<option value="'+ id +'">'+ title +'</option>');
+                    })
+                })
+            })
+        })
+
+    </script>
+
+</head>
+<body>
+
+<h3>区域显示案例</h3>
+
+<select id="prov">
+    <option>--请选择省份--</option>
+</select>
+
+<select id="city">
+    <option>--请选择城市--</option>
+</select>
+
+<select id="district">
+    <option>--请选择区县--</option>
+</select>
+
+
+</body>
+</html>
